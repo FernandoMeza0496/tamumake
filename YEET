@@ -1,0 +1,86 @@
+
+#include <Wire.h>
+#include <Adafruit_MMA8451.h>
+#include <Adafruit_Sensor.h>
+#include <FastLED.h>
+#define NUM_LEDS 16
+#define DATA_PIN 3
+int piezoPin = 8;
+
+CRGB leds[NUM_LEDS];
+
+Adafruit_MMA8451 mma = Adafruit_MMA8451();
+
+void setup(void) {
+  Serial.begin(9600);
+  
+  Serial.println("Adafruit MMA8451 test!");
+  
+
+  if (! mma.begin()) {
+    Serial.println("Couldnt start");
+    while (1);
+  }
+  Serial.println("MMA8451 found!");
+  
+  mma.setRange(MMA8451_RANGE_2_G);
+  
+  Serial.print("Range = "); Serial.print(2 << mma.getRange());  
+  Serial.println("G");
+  
+  FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
+}
+
+void loop(){
+
+  // for (int i = 0; i < 16;i++){
+  //   Serial.print('*');
+  //   leds[i] = CRGB::Black;
+  //   FastLED.show();
+
+  /* Get a new sensor event */ 
+  sensors_event_t event; 
+  mma.getEvent(&event);
+  
+  float xacc = event.acceleration.x + -.36;
+  float yacc = event.acceleration.y + 1.5;
+  //Serial.print(" ");
+  float magn = sqrt(xacc*xacc + yacc*yacc);
+  //Serial.print(magn);
+  int ast = magn;
+  if (ast > 13){
+    tone(piezoPin, 1000, 500);
+    delay(100);
+  }
+  for (int i = 0; i<16;i++){
+    if (i > ast){
+     leds[i] = CRGB::Black;
+    }
+    else {
+      if (i<16){
+        leds[i] = CRGB(255,0,0);
+      }
+      if (i<12){
+        leds[i] = CRGB(255,83,0);
+      }
+      if (i<8){
+        leds[i] = CRGB(255,128,0);
+      }
+      if (i<4){
+        leds[i] = CRGB(128,255,0);
+      }
+    }
+  FastLED.show();
+  Serial.println();
+  delay(2);
+  }
+}
+  
+  
+  
+  
+  
+  
+  
+  
+
